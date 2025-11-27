@@ -19,25 +19,26 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    // ========== REGISTRO ==========
+    // ========== Registro ==========
     public UsuarioResponse registrar(RegistroRequest request) {
+
         if (!request.isAceptaTerminos()) {
             throw new IllegalArgumentException("Debes aceptar los términos y condiciones.");
         }
 
-        if (usuarioRepository.existsByCorreo(request.getCorreo().trim().toLowerCase())) {
-            throw new IllegalArgumentException("Ya existe un usuario registrado con ese correo.");
+        if (usuarioRepository.existsByCorreo(request.getCorreo())) {
+            throw new IllegalArgumentException("El correo ya se encuentra registrado.");
         }
 
         Usuario usuario = Usuario.builder()
-                .nombre(request.getNombre().trim())
-                .correo(request.getCorreo().trim().toLowerCase())
-                .telefono(request.getTelefono().trim())
-                .direccion(request.getDireccion().trim())
-                .clave(passwordEncoder.encode(request.getClave())) // hasheamos la contraseña
-                .esAdmin(false) // registro normal
+                .nombre(request.getNombre())
+                .correo(request.getCorreo())
+                .telefono(request.getTelefono())
+                .direccion(request.getDireccion())
+                .clave(passwordEncoder.encode(request.getClave()))
+                .esAdmin(false)   // siempre usuario normal al registrarse
                 .activo(true)
                 .build();
 
@@ -45,37 +46,39 @@ public class UsuarioService {
         return toResponse(guardado);
     }
 
-    // ========== LOGIN ==========
+    // ========== Login ==========
     public UsuarioResponse login(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreo(request.getCorreo().trim().toLowerCase())
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no registrado."));
+
+        Usuario usuario = usuarioRepository.findByCorreo(request.getCorreo())
+                .orElseThrow(() -> new IllegalArgumentException("Correo o contraseña incorrectos."));
 
         if (!usuario.isActivo()) {
-            throw new IllegalArgumentException("Usuario inactivo.");
+            throw new IllegalStateException("El usuario se encuentra inactivo.");
         }
 
         if (!passwordEncoder.matches(request.getClave(), usuario.getClave())) {
-            throw new IllegalArgumentException("Credenciales incorrectas.");
+            throw new IllegalArgumentException("Correo o contraseña incorrectos.");
         }
 
         return toResponse(usuario);
     }
 
-    // ========== ADMIN: LISTAR / OBTENER / ELIMINAR ==========
+    // ========== CRUD básico para admin ==========
     public List<UsuarioResponse> obtenerTodos() {
-        return usuarioRepository.findAll().stream()
+        return usuarioRepository.findAll()
+                .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     public UsuarioResponse obtenerPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado."));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id " + id));
         return toResponse(usuario);
     }
 
     public void eliminar(Long id) {
-        // puedes hacer borrado lógico si prefieres: setActivo(false)
+        // si quieres borrado lógico, cambia a setActivo(false) y save
         usuarioRepository.deleteById(id);
     }
 

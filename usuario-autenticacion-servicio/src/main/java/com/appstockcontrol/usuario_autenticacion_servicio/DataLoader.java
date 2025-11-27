@@ -14,10 +14,12 @@ import lombok.RequiredArgsConstructor;
 public class DataLoader implements CommandLineRunner {
 
     private final UsuarioRepository usuarioRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
+
+        // Crea un admin solo la primera vez
         if (usuarioRepository.count() == 0) {
             Usuario admin = Usuario.builder()
                     .nombre("Administrador")

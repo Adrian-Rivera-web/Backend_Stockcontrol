@@ -1,4 +1,4 @@
-package com.appstockcontrol.usuario_autenticacion_servicio.model;
+package com.appstockcontrol.proveedores_servicio.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,35 +12,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "proveedores")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Usuario {
+public class Proveedor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 120)
     private String nombre;
 
-    @Column(nullable = false, unique = true, length = 120)
-    private String correo; // usado para login
-
-    @Column(nullable = false, length = 255)
-    private String clave;  // contraseña HASHEADA (BCrypt)
-
-    @Column(nullable = false, length = 200)
-    private String direccion;
+    @Column(nullable = false, length = 120)
+    private String contacto;
 
     @Column(length = 20)
     private String telefono;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private boolean esAdmin = false;
+    @Column(nullable = false, unique = true, length = 150)
+    private String email;
+
+    @Column(nullable = false, length = 200)
+    private String direccion;
 
     @Builder.Default
     @Column(nullable = false)
