@@ -22,11 +22,11 @@ public class DataLoader implements CommandLineRunner {
         // Crea un admin solo la primera vez
         if (usuarioRepository.count() == 0) {
             Usuario admin = Usuario.builder()
-                    .nombre("Administrador")
-                    .correo("admin@appstockcontrol.cl")
-                    .telefono("999999999")
-                    .direccion("Dirección Admin")
-                    .clave(passwordEncoder.encode("admin123"))
+                    .nombre("Adrian")
+                    .correo("ad.rivera@duocuc.cl")
+                    .telefono("+56936778106")
+                    .direccion("Duoc UC")
+                    .clave(passwordEncoder.encode("Admin_123"))
                     .esAdmin(true)
                     .activo(true)
                     .build();
