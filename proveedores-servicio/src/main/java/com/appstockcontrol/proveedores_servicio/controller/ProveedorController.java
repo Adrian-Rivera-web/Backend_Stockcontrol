@@ -28,31 +28,26 @@ public class ProveedorController {
 
     private final ProveedorService proveedorService;
 
-    // Listar proveedores activos
     @GetMapping
     public ResponseEntity<List<ProveedorDTO>> listarProveedores() {
         return ResponseEntity.ok(proveedorService.listarActivos());
     }
 
-    // Buscar proveedores activos por texto
-    @GetMapping("/buscar")
-    public ResponseEntity<List<ProveedorDTO>> buscar(@RequestParam(required = false) String query) {
+    @GetMapping("/search")
+    public ResponseEntity<List<ProveedorDTO>> buscarProveedores(@RequestParam("query") String query) {
         return ResponseEntity.ok(proveedorService.buscar(query));
     }
 
-    // Obtener por ID
     @GetMapping("/{id}")
     public ResponseEntity<ProveedorDTO> obtenerProveedor(@PathVariable Long id) {
         return ResponseEntity.ok(proveedorService.obtenerPorId(id));
     }
 
-    // Crear proveedor
     @PostMapping
     public ResponseEntity<ProveedorDTO> crearProveedor(@Valid @RequestBody ProveedorDTO dto) {
         return ResponseEntity.ok(proveedorService.crear(dto));
     }
 
-    // Actualizar proveedor
     @PutMapping("/{id}")
     public ResponseEntity<ProveedorDTO> actualizarProveedor(
             @PathVariable Long id,
@@ -60,7 +55,7 @@ public class ProveedorController {
         return ResponseEntity.ok(proveedorService.actualizar(id, dto));
     }
 
-    // Eliminar proveedor (borrado físico)
+    // ✅ Eliminar proveedor (borrado físico)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarProveedor(@PathVariable Long id) {
         proveedorService.eliminar(id);

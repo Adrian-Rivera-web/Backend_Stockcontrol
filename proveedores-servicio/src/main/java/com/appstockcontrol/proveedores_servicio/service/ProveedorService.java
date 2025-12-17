@@ -22,7 +22,6 @@ public class ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
 
-    // ===== Listar todos los proveedores activos =====
     public List<ProveedorDTO> listarActivos() {
         return proveedorRepository.findByActivoTrue()
                 .stream()
@@ -30,7 +29,6 @@ public class ProveedorService {
                 .collect(Collectors.toList());
     }
 
-    // ===== Buscar proveedores por texto =====
     public List<ProveedorDTO> buscar(String query) {
         if (query == null || query.isBlank()) {
             return listarActivos();
@@ -41,7 +39,6 @@ public class ProveedorService {
                 .collect(Collectors.toList());
     }
 
-    // ===== Obtener por ID =====
     public ProveedorDTO obtenerPorId(Long id) {
         Proveedor proveedor = proveedorRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -49,26 +46,15 @@ public class ProveedorService {
         return toDto(proveedor);
     }
 
-    // ===== Crear proveedor =====
     public ProveedorDTO crear(ProveedorDTO dto) {
+        String email = normalizarEmail(dto.getEmail());
 
-        String email = (dto.getEmail() == null) ? null : dto.getEmail().trim().toLowerCase();
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("El email es obligatorio.");
+        if (proveedorRepository.existsByEmailIgnoreCase(email)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un proveedor con ese email.");
         }
 
-        // Si existía un proveedor INACTIVO con el mismo email (por borrado lógico anterior),
-        // lo eliminamos físicamente para liberar el email.
-        proveedorRepository.findByEmailIgnoreCase(email).ifPresent(existing -> {
-            if (!existing.isActivo()) {
-                proveedorRepository.deleteById(existing.getId());
-            } else {
-                throw new IllegalArgumentException("Ya existe un proveedor con ese email.");
-            }
-        });
-
         Proveedor proveedor = toEntity(dto);
-        proveedor.setId(null); // asegurar que sea nuevo
+        proveedor.setId(null);
         proveedor.setEmail(email);
         proveedor.setActivo(true);
 
@@ -76,27 +62,23 @@ public class ProveedorService {
         return toDto(guardado);
     }
 
-    // ===== Actualizar proveedor =====
     public ProveedorDTO actualizar(Long id, ProveedorDTO dto) {
         Proveedor existente = proveedorRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Proveedor no encontrado con id " + id));
 
-        String nuevoEmail = (dto.getEmail() == null) ? null : dto.getEmail().trim().toLowerCase();
-        if (nuevoEmail == null || nuevoEmail.isBlank()) {
-            throw new IllegalArgumentException("El email es obligatorio.");
-        }
+        String emailNuevo = normalizarEmail(dto.getEmail());
 
-        // Si cambia el email, validamos que no exista en otro proveedor
-        if (!existente.getEmail().equalsIgnoreCase(nuevoEmail)
-                && proveedorRepository.existsByEmailIgnoreCase(nuevoEmail)) {
-            throw new IllegalArgumentException("Ya existe un proveedor con ese email.");
+        // Si cambia el email, validar que no exista en otro proveedor
+        if (!existente.getEmail().equalsIgnoreCase(emailNuevo)
+                && proveedorRepository.existsByEmailIgnoreCase(emailNuevo)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un proveedor con ese email.");
         }
 
         existente.setNombre(dto.getNombre());
         existente.setContacto(dto.getContacto());
         existente.setTelefono(dto.getTelefono());
-        existente.setEmail(nuevoEmail);
+        existente.setEmail(emailNuevo);
         existente.setDireccion(dto.getDireccion());
         existente.setActivo(dto.isActivo());
 
@@ -104,15 +86,16 @@ public class ProveedorService {
         return toDto(actualizado);
     }
 
-    // ===== Eliminar (borrado físico) =====
+    // ✅ BORRADO FÍSICO (hard delete)
     public void eliminar(Long id) {
         if (!proveedorRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Proveedor no encontrado con id " + id);
         }
 
         try {
-            proveedorRepository.deleteById(id); // ✅ hard delete
+            proveedorRepository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
+            // Si está relacionado con otros registros (FK), evita 500 y devuelve 409
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "No se puede eliminar el proveedor porque está relacionado con otros registros.",
@@ -121,7 +104,14 @@ public class ProveedorService {
         }
     }
 
-    // ===== Helpers de mapeo =====
+    private String normalizarEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El email es obligatorio.");
+        }
+        return email.trim().toLowerCase();
+    }
+
+    // ===== Helpers =====
     private ProveedorDTO toDto(Proveedor proveedor) {
         ProveedorDTO dto = new ProveedorDTO();
         dto.setId(proveedor.getId());

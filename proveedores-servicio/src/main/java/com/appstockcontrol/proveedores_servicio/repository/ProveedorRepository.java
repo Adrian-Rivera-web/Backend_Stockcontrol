@@ -11,10 +11,8 @@ import com.appstockcontrol.proveedores_servicio.model.Proveedor;
 
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
 
-    // Para listar solo proveedores activos
     List<Proveedor> findByActivoTrue();
 
-    // Buscar por nombre, contacto o email (solo activos)
     @Query("""
            SELECT p FROM Proveedor p
            WHERE p.activo = true
@@ -26,11 +24,8 @@ public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
            """)
     List<Proveedor> buscarActivosPorQuery(@Param("query") String query);
 
-    boolean existsByEmail(String email);
-
-    // Buscar proveedor por email (ignora mayúsculas/minúsculas)
-    Optional<Proveedor> findByEmailIgnoreCase(String email);
-
-    // Exists ignoring case (útil para validaciones)
     boolean existsByEmailIgnoreCase(String email);
+
+    Optional<Proveedor> findByEmailIgnoreCase(String email);
 }
+
