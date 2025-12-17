@@ -3,8 +3,10 @@ package com.appstockcontrol.catalogo.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.appstockcontrol.catalogo.model.Categoria;
 import com.appstockcontrol.catalogo.model.Producto;
@@ -55,10 +57,23 @@ public class CatalogoService {
         return categoriaRepository.save(existente);
     }
 
+    @Deprecated
     public void eliminarLogicoCategoria(Long id) {
-        Categoria existente = obtenerCategoria(id);
-        existente.setActiva(false);
-        categoriaRepository.save(existente);
+        eliminarCategoria(id);
+    }
+
+    public void eliminarCategoria(Long id) {
+        // valida existencia
+        obtenerCategoria(id);
+
+        if (productoRepository.existsByCategoriaId(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede eliminar la categoría porque tiene productos asociados. Elimina o reasigna los productos primero."
+            );
+        }
+
+        categoriaRepository.deleteById(id);
     }
 
     // ================== PRODUCTOS ==================
@@ -113,13 +128,17 @@ public class CatalogoService {
         return productoRepository.save(existente);
     }
 
+    @Deprecated
     public void eliminarLogicoProducto(Long id) {
-        Producto existente = obtenerProducto(id);
-        existente.setActivo(false);
-        productoRepository.save(existente);
+        eliminarProducto(id);
     }
 
-    // Productos con stockActual <= stockMinimo (para reportes de inventario)
+    public void eliminarProducto(Long id) {
+        // valida existencia
+        obtenerProducto(id);
+        productoRepository.deleteById(id);
+    }
+
     public List<Producto> productosBajoStock() {
         return productoRepository.findByActivoTrue()
                 .stream()

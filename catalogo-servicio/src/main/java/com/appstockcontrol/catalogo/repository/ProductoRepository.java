@@ -13,4 +13,6 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByActivoTrueAndStockActualLessThanEqual(Integer stock);
 
     List<Producto> findByActivoTrueAndCategoriaId(Long categoriaId);
+
+    boolean existsByCategoriaId(Long categoriaId);
 }

@@ -60,7 +60,7 @@ public class CatalogoController {
 
     @DeleteMapping("/categorias/{id}")
     public ResponseEntity<Void> eliminarCategoria(@PathVariable Long id) {
-        catalogoService.eliminarLogicoCategoria(id);
+        catalogoService.eliminarCategoria(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -135,7 +135,7 @@ public class CatalogoController {
 
     @DeleteMapping("/productos/{id}")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
-        catalogoService.eliminarLogicoProducto(id);
+        catalogoService.eliminarProducto(id);
         return ResponseEntity.noContent().build();
     }
 }
