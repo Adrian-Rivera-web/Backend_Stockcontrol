@@ -1,6 +1,7 @@
 package com.appstockcontrol.proveedores_servicio.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,10 @@ public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     List<Proveedor> buscarActivosPorQuery(@Param("query") String query);
 
     boolean existsByEmail(String email);
+
+    // Buscar proveedor por email (ignora mayúsculas/minúsculas)
+    Optional<Proveedor> findByEmailIgnoreCase(String email);
+
+    // Exists ignoring case (útil para validaciones)
+    boolean existsByEmailIgnoreCase(String email);
 }
